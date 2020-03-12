@@ -5,18 +5,17 @@
 
 int main()
 {
-    unsigned long long t, t_mono;
+    unsigned long long t_nano, t_sec, t_day;
 
-    timez_calibration();
+    t_nano = ztm_get_time(ztmNanosec, ztmReal);
+    t_sec = ztm_get_time(ztmSec, ztmReal);
+    t_day = ztm_get_time(ztmDay, ztmReal);
 
-    while (1)
-    {
-        t = timez_gettime(timezMicrosec, timezReal);
-        t_mono = timez_gettime(timezMicrosec, timezMono);
+    printf("time [%lld]nanosecs\n", t_nano);
+    printf("time [%lld]secs\n", t_sec);
+    printf("time [%lld]days\n", t_day);
 
-        printf("time [%lld] mono [%lld] diff[%lld]\n", t, t_mono, t - t_mono);
-        sleep(3);
-    }
+    printf("converted [%lld]secs to [%lld]days\n", t_sec, ztm_convert(t_sec, ztmSec, ztmDay));
 
     return 0;
 }

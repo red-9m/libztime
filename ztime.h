@@ -12,38 +12,53 @@
 /**
  *  Time unit
  */
-enum timez_unit
+enum ztm_unit
 {
-    timezSec = 0,        /**< Time unit - seconds */
-    timezMicrosec = 1,   /**< Time unit - microseconds */
-    timezNanosec = 2,    /**< Time unit - nanoseconds */
+    ztmDay = 0,    /**< Days */
+    ztmHour,       /**< Hours */
+    ztmMin,        /**< Minutes */
+    ztmSec,        /**< Seconds */
+    ztmMicrosec,   /**< Microseconds */
+    ztmNanosec,    /**< Nanoseconds */
 
-    TIMEZ_UNIT_LAST = 3  /**< Last item */
+    ZTM_UNIT_LAST  /**< Last item */
 };
 
 /**
  *  Clock type
  */
-enum timez_clock
+enum ztm_clock
 {
-    timezReal = 0,  /**< Real non-monotonic clock (could be affected by NTP and time set) */
-    timezMono = 1   /**< Monotonic clock (require calibration) */
+    ztmReal,  /**< Real non-monotonic clock (could be affected by NTP and time set) */
+    ztmMono,  /**< Monotonic clock (require calibration) */
+    ztmCpu    /**< Process CPU time */
 };
+
 
 // === Public API ==============================================================
 
 /** @brief  Re-calibrate monotonic clock
  */
-void timez_calibration(void);
+void ztm_adjust_mono(void);
 
 /** @brief  Get current time
  *
- *  @param  unit           Time unit (seconds, microseconds, nanoseconds)
- *  @param  clock          Clock type (Realtime, monotonic)
+ *  @param  unit           Time units
+ *  @param  clock          Clock type
  *
- *  @return                zero - incorrect time unit; positive - time in `unit` time units
+ *  @return                zero - incorrect time unit; positive - time in 'unit' time units
  */
-unsigned long long timez_gettime(enum timez_unit unit, enum timez_clock clock);
+unsigned long long ztm_get_time(enum ztm_unit unit, enum ztm_clock clock);
+
+/** @brief  Convert time units
+ *
+ *  @param  time           Time to convert
+ *  @param  fromUnit       Units 'time' passed in
+ *  @param  toUnit         Units to return
+ *
+ *  @return                zero - incorrect time unit; positive - converted time in 'toUnit' time units
+ */
+unsigned long long ztm_convert(unsigned long long time, enum ztm_unit fromUnit, enum ztm_unit toUnit);
 
 
 #endif
