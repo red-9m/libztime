@@ -7,23 +7,20 @@
 
 // === Private definitions =====================================================
 
+#define STR_TIME_BUFF_SIZE 512
+
+static char g_str_time[STR_TIME_BUFF_SIZE];
 static long long g_time_calibration[(int)ZTM_UNIT_LAST];
 
 static const unsigned long long NANOSEC_IN_MICROSEC = 1000;
-static const unsigned long long MICROSEC_IN_SEC     = 1000000;
-static const unsigned long long NANOSEC_IN_SEC      = MICROSEC_IN_SEC * NANOSEC_IN_MICROSEC;
-static const unsigned long long NANOSEC_IN_MIN      = NANOSEC_IN_SEC * 60;
-static const unsigned long long NANOSEC_IN_HOUR     = NANOSEC_IN_MIN * 60;
-static const unsigned long long NANOSEC_IN_DAY      = NANOSEC_IN_HOUR * 24;
+static const unsigned long long NANOSEC_IN_SEC      = NANOSEC_IN_MICROSEC * 1000000;
+static const unsigned long long NANOSEC_IN_MIN      = NANOSEC_IN_SEC      * 60;
+static const unsigned long long NANOSEC_IN_HOUR     = NANOSEC_IN_MIN      * 60;
+static const unsigned long long NANOSEC_IN_DAY      = NANOSEC_IN_HOUR     * 24;
 
 unsigned long long unit_to_nano[(int)ZTM_UNIT_LAST] =
 {
-    NANOSEC_IN_DAY,
-    NANOSEC_IN_HOUR,
-    NANOSEC_IN_MIN,
-    NANOSEC_IN_SEC,
-    NANOSEC_IN_MICROSEC,
-    1
+    NANOSEC_IN_DAY, NANOSEC_IN_HOUR, NANOSEC_IN_MIN, NANOSEC_IN_SEC, NANOSEC_IN_MICROSEC, 1
 };
 
 
@@ -51,25 +48,28 @@ static unsigned long long _convert_to_from(unsigned long long time, int unit, in
 {
     unsigned long long result = 0;
 
-    if ((unit >= 0) && (unit < ZTM_UNIT_LAST))
+    if ((unit >= 0) && (unit < (int)ZTM_UNIT_LAST))
     {
         if (direction)
             result = time * unit_to_nano[unit];
         else
             result = time / unit_to_nano[unit];
-    }
+    } else
+        errno = EINVAL;
 
     return result;    
 }
 
 static unsigned long long _convert_to_nanosec(unsigned long long time, enum ztm_unit fromUnit)
 {
-    return _convert_to_from(time, (int)fromUnit, 1);
+    const int direction_to = 1;
+    return _convert_to_from(time, (int)fromUnit, direction_to);
 }
 
 static unsigned long long _convert_from_nanosec(unsigned long long time, enum ztm_unit toUnit)
 {
-    return _convert_to_from(time, (int)toUnit, 0);
+    const int direction_from = 0;
+    return _convert_to_from(time, (int)toUnit, direction_from);
 }
 
 
@@ -94,7 +94,35 @@ unsigned long long ztm_get_time(enum ztm_unit unit, enum ztm_clock clock)
     return result;
 }
 
-unsigned long long ztm_convert(unsigned long long time, enum ztm_unit fromUnit, enum ztm_unit toUnit)
+unsigned long long ztm_convert_time(unsigned long long time, enum ztm_unit fromUnit, enum ztm_unit toUnit)
 {
     return _convert_from_nanosec(_convert_to_nanosec(time, fromUnit), toUnit);
+}
+
+const char* ztm_time_to_str(unsigned long long time, enum ztm_unit unit, const char *format)
+{
+    ztm_time_to_buff(time, unit, g_str_time, STR_TIME_BUFF_SIZE, format);
+
+    return g_str_time;
+}
+
+void ztm_time_to_buff(unsigned long long time, enum ztm_unit unit, char* buff, size_t buffSize, const char *format)
+{
+    time_t rawtime = (time_t)_convert_from_nanosec(_convert_to_nanosec(time, unit), ztmSec);
+    struct tm *brokendown_time = localtime(&rawtime);
+
+    strftime(buff, buffSize, format, brokendown_time);
+}
+
+unsigned long long ztm_str_to_time(const char *timeStr, const char *format, enum ztm_unit toUnit)
+{
+    struct tm brokendown_time;
+    time_t time_sec = 0;
+
+    if (strptime(timeStr, format, &brokendown_time) != NULL)
+        time_sec = mktime(&brokendown_time);
+    else
+        errno = EINVAL;
+
+    return ztm_convert_time(time_sec, ztmSec, toUnit);
 }

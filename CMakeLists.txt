@@ -33,7 +33,7 @@ add_executable(sample EXCLUDE_FROM_ALL ${sample-src})
 # Additional: -march=core-avx2 -mtune=core-avx2
 set(_COMPILE_OPT -pipe -ftree-vectorize -ffast-math -flto -Wall -Wextra -Wpedantic)
 set(_LINK_OPT "-flto -fuse-ld=gold")
-set(_COMPILE_DEF -D_POSIX_C_SOURCE=199309L)
+set(_COMPILE_DEF -D_POSIX_C_SOURCE=199309L -D_XOPEN_SOURCE)
 
 if (CMAKE_BUILD_TYPE EQUAL "Debug")
     set(_COMPILE_OPT ${_COMPILE_OPT} -g)

@@ -41,24 +41,59 @@ enum ztm_clock
  */
 void ztm_adjust_mono(void);
 
+
 /** @brief  Get current time
  *
- *  @param  unit           Time units
- *  @param  clock          Clock type
+ *  @param  unit           Time units for returned time
+ *  @param  clock          Clock type to get
  *
- *  @return                zero - incorrect time unit; positive - time in 'unit' time units
+ *  @return                Time in 'unit' time units; EINVAL in errno - incorrect time unit or clock
  */
 unsigned long long ztm_get_time(enum ztm_unit unit, enum ztm_clock clock);
 
-/** @brief  Convert time units
+
+/** @brief  Convert between time units
  *
  *  @param  time           Time to convert
- *  @param  fromUnit       Units 'time' passed in
- *  @param  toUnit         Units to return
+ *  @param  fromUnit       Unit 'time' passed in
+ *  @param  toUnit         Unit to return time in
  *
- *  @return                zero - incorrect time unit; positive - converted time in 'toUnit' time units
+ *  @return                Converted time in 'toUnit' time units; EINVAL in errno - incorrect time unit
  */
-unsigned long long ztm_convert(unsigned long long time, enum ztm_unit fromUnit, enum ztm_unit toUnit);
+unsigned long long ztm_convert_time(unsigned long long time, enum ztm_unit fromUnit, enum ztm_unit toUnit);
+
+
+/** @brief  Format time to static string
+ *
+ *  @param  time           Time
+ *  @param  unit           Unit 'time' passed in
+ *  @param  format         Output format template (see strftime())
+ *
+ *  @return                Formatted time string
+ */
+const char* ztm_time_to_str(unsigned long long time, enum ztm_unit unit, const char *format);
+
+
+/** @brief  Format time to string buffer
+ *
+ *  @param  time           Time
+ *  @param  unit           Unit 'time' passed in
+ *  @param  buff           Buffer to write to
+ *  @param  buffSize       Size of buffer 'buff'
+ *  @param  format         Output format template (see strftime())
+ */
+void ztm_time_to_buff(unsigned long long time, enum ztm_unit unit, char* buff, size_t buffSize, const char *format);
+
+
+/** @brief  Convert time string to time unit
+ *
+ *  @param  timeStr        Time string
+ *  @param  format         Input format template (see strftime())
+ *  @param  toUnit         Unit to return time in
+ *
+ *  @return                Time in 'unit' time units; EINVAL in errno - incorrect time string or format
+ */
+unsigned long long ztm_str_to_time(const char *timeStr, const char *format, enum ztm_unit toUnit);
 
 
 #endif
