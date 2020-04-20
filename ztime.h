@@ -6,6 +6,8 @@
  *  @brief libZTime public API
  */
 
+#include <stddef.h>
+
 
 // === Public types ============================================================
 
