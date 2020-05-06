@@ -51,7 +51,7 @@ void ztm_adjust_mono(void);
  *
  *  @return                Time in 'unit' time units; EINVAL in errno - incorrect time unit or clock
  */
-unsigned long long ztm_get_time(enum ztm_unit unit, enum ztm_clock clock);
+long long ztm_get_time(enum ztm_unit unit, enum ztm_clock clock);
 
 
 /** @brief  Convert between time units
@@ -62,7 +62,7 @@ unsigned long long ztm_get_time(enum ztm_unit unit, enum ztm_clock clock);
  *
  *  @return                Converted time in 'toUnit' time units; EINVAL in errno - incorrect time unit
  */
-unsigned long long ztm_convert_time(unsigned long long time, enum ztm_unit fromUnit, enum ztm_unit toUnit);
+long long ztm_convert_time(long long time, enum ztm_unit fromUnit, enum ztm_unit toUnit);
 
 
 /** @brief  Format time to static string
@@ -73,7 +73,7 @@ unsigned long long ztm_convert_time(unsigned long long time, enum ztm_unit fromU
  *
  *  @return                Formatted time string
  */
-const char* ztm_time_to_str(unsigned long long time, enum ztm_unit unit, const char *format);
+const char* ztm_time_to_str(long long time, enum ztm_unit unit, const char *format);
 
 
 /** @brief  Format time to string buffer
@@ -84,7 +84,7 @@ const char* ztm_time_to_str(unsigned long long time, enum ztm_unit unit, const c
  *  @param  buffSize       Size of buffer 'buff'
  *  @param  format         Output format template (see strftime())
  */
-void ztm_time_to_buff(unsigned long long time, enum ztm_unit unit, char* buff, size_t buffSize, const char *format);
+void ztm_time_to_buff(long long time, enum ztm_unit unit, char* buff, size_t buffSize, const char *format);
 
 
 /** @brief  Convert time string to time unit
@@ -95,7 +95,7 @@ void ztm_time_to_buff(unsigned long long time, enum ztm_unit unit, char* buff, s
  *
  *  @return                Time in 'unit' time units; EINVAL in errno - incorrect time string or format
  */
-unsigned long long ztm_str_to_time(const char *timeStr, const char *format, enum ztm_unit toUnit);
+long long ztm_str_to_time(const char *timeStr, const char *format, enum ztm_unit toUnit);
 
 
 #endif

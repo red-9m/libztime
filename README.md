@@ -1,4 +1,4 @@
-# libztime ver. 0.0.1
+# libztime ver. 0.0.2
 Time management C library
 
 # Configure as shared library:

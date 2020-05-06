@@ -5,7 +5,7 @@
 
 int main()
 {
-    unsigned long long t_nano, t_sec, t_day;
+    long long t_nano, t_sec, t_day;
 
     t_nano = ztm_get_time(ztmNanosec, ztmReal);
     t_sec = ztm_get_time(ztmSec, ztmReal);
