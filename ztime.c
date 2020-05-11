@@ -106,12 +106,13 @@ const char* ztm_time_to_str(long long time, enum ztm_unit unit, const char *form
     return g_str_time;
 }
 
-void ztm_time_to_buff(long long time, enum ztm_unit unit, char* buff, size_t buffSize, const char *format)
+char* ztm_time_to_buff(long long time, enum ztm_unit unit, char* buff, size_t buffSize, const char *format)
 {
     time_t rawtime = (time_t)_convert_from_nanosec(_convert_to_nanosec(time, unit), ztmSec);
     struct tm *brokendown_time = localtime(&rawtime);
 
     strftime(buff, buffSize, format, brokendown_time);
+    return buff;
 }
 
 long long ztm_str_to_time(const char *timeStr, const char *format, enum ztm_unit toUnit)

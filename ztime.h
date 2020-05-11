@@ -83,8 +83,10 @@ const char* ztm_time_to_str(long long time, enum ztm_unit unit, const char *form
  *  @param  buff           Buffer to write to
  *  @param  buffSize       Size of buffer 'buff'
  *  @param  format         Output format template (see strftime())
+ *
+ *  @return                Returned 'buff'
  */
-void ztm_time_to_buff(long long time, enum ztm_unit unit, char* buff, size_t buffSize, const char *format);
+char* ztm_time_to_buff(long long time, enum ztm_unit unit, char* buff, size_t buffSize, const char *format);
 
 
 /** @brief  Convert time string to time unit

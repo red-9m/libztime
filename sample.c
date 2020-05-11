@@ -16,8 +16,7 @@ int main()
     printf("time [%lld]days\n", t_day);
 
     char buff[128];
-    ztm_time_to_buff(t_nano, ztmNanosec, buff, 128, "%FT%H:%M:%SZ");
-    printf("converted [%lld]secs to [%lld]days ISO_8601[%s] buff[%s]\n", t_sec, ztm_convert_time(t_sec, ztmSec, ztmDay), ztm_time_to_str(t_nano, ztmNanosec, "%FT%H:%M:%SZ"), buff);
+    printf("converted [%lld]secs to [%lld]days ISO_8601[%s] buff[%s]\n", t_sec, ztm_convert_time(t_sec, ztmSec, ztmDay), ztm_time_to_str(t_nano, ztmNanosec, "%FT%H:%M:%SZ"), ztm_time_to_buff(t_nano, ztmNanosec, buff, 128, "%FT%H:%M:%SZ"));
 
     t_nano = ztm_str_to_time(buff, "%FT%H:%M:%SZ", ztmNanosec);
 
