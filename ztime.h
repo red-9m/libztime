@@ -7,7 +7,7 @@
  */
 
 #include <stddef.h>
-
+#include <time.h>
 
 // === Public types ============================================================
 
@@ -39,9 +39,11 @@ enum ztm_clock
 
 // === Public API ==============================================================
 
-/** @brief  Re-calibrate monotonic clock
+/** @brief  Set time zone and re-calibrate monotonic clock
+ *
+ *  @return                '0' - success, '-1' - fail and errno is set
  */
-void ztm_adjust_mono(void);
+int ztm_calibrate(void);
 
 
 /** @brief  Get current time
@@ -49,9 +51,28 @@ void ztm_adjust_mono(void);
  *  @param  unit           Time units for returned time
  *  @param  clock          Clock type to get
  *
- *  @return                Time in 'unit' time units; EINVAL in errno - incorrect time unit or clock
+ *  @return                Non-negative - time in 'unit'; '-1' - fail and errno is set
  */
 long long ztm_get_time(enum ztm_unit unit, enum ztm_clock clock);
+
+
+/** @brief  Get current broken-down time
+ *
+ *  @param  clock          Clock type to get
+ *
+ *  @return                Broken-down time; NULL - fail and errno is set
+ */
+struct tm* ztm_get_time_brokendown(enum ztm_clock clock);
+
+
+/** @brief  Make broken-down time
+ *
+ *  @param  time           Time to convert
+ *  @param  unit           Unit 'time' passed in
+ *
+ *  @return                Broken-down time; NULL - fail and errno is set
+ */
+struct tm* ztm_make_time_brokendown(long long time, enum ztm_unit unit);
 
 
 /** @brief  Convert between time units
@@ -60,7 +81,7 @@ long long ztm_get_time(enum ztm_unit unit, enum ztm_clock clock);
  *  @param  fromUnit       Unit 'time' passed in
  *  @param  toUnit         Unit to return time in
  *
- *  @return                Converted time in 'toUnit' time units; EINVAL in errno - incorrect time unit
+ *  @return                Converted time in 'toUnit'; EINVAL in errno - incorrect time unit
  */
 long long ztm_convert_time(long long time, enum ztm_unit fromUnit, enum ztm_unit toUnit);
 
@@ -95,7 +116,7 @@ char* ztm_time_to_buff(long long time, enum ztm_unit unit, char* buff, size_t bu
  *  @param  format         Input format template (see strftime())
  *  @param  toUnit         Unit to return time in
  *
- *  @return                Time in 'unit' time units; EINVAL in errno - incorrect time string or format
+ *  @return                Time in 'unit'; EINVAL in errno - incorrect time string or format
  */
 long long ztm_str_to_time(const char *timeStr, const char *format, enum ztm_unit toUnit);
 

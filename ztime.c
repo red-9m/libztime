@@ -1,4 +1,3 @@
-#include <time.h>
 #include <sys/time.h>
 #include <errno.h>
 
@@ -26,10 +25,9 @@ long long unit_to_nano[(int)ZTM_UNIT_LAST] =
 
 // === Private functions =======================================================
 
-static long long _get_time(enum ztm_clock clock)
+static struct timespec _get_time(enum ztm_clock clock)
 {
     struct timespec now;
-    long long result = 0;
     clockid_t clock_type = CLOCK_REALTIME;
 
     if (clock == ztmMono)
@@ -37,11 +35,16 @@ static long long _get_time(enum ztm_clock clock)
     else if (clock == ztmCpu)
         clock_type = CLOCK_PROCESS_CPUTIME_ID;
 
-    if (clock_gettime(clock_type, &now) == 0)
-        result = (long long)now.tv_nsec + (long long)now.tv_sec * NANOSEC_IN_SEC;
+    // If clock_gettime() returned an error then -1 returned and errno is set
+    if (clock_gettime(clock_type, &now) == -1)
+        now.tv_sec  = -1;
 
-    // If clock_gettime() returned an error then 0 returned and errno set to EINVAL
-    return result;
+    return now;
+}
+
+static long long _get_time_nano(struct timespec time)
+{
+    return (long long)time.tv_nsec + (long long)time.tv_sec * NANOSEC_IN_SEC;
 }
 
 static long long _convert_to_from(long long time, int unit, int direction)
@@ -75,21 +78,63 @@ static long long _convert_from_nanosec(long long time, enum ztm_unit toUnit)
 
 // === Public functions ========================================================
 
-void ztm_adjust_mono()
+int ztm_calibrate()
 {
-    int i;
-    long long nanosec_calibration = _get_time(ztmReal) - _get_time(ztmMono);
+    int i, result;
+    long long nanosec_calibration;
+    struct timespec time_real, time_mono;
 
-    for (i = 0; i < (int)ZTM_UNIT_LAST; i++)
-        g_time_calibration[i] = _convert_from_nanosec(nanosec_calibration, (enum ztm_unit)i);
+    result = -1;
+    tzset();
+    time_real = _get_time(ztmReal);
+    if (time_real.tv_sec != -1)
+    {
+        time_mono = _get_time(ztmMono);
+
+        if (time_mono.tv_sec != -1)
+        {
+            nanosec_calibration = _get_time_nano(time_real) - _get_time_nano(time_mono);
+            for (i = 0; i < (int)ZTM_UNIT_LAST; i++)
+                g_time_calibration[i] = _convert_from_nanosec(nanosec_calibration, (enum ztm_unit)i);
+        }
+    }
+
+    return result;
 }
 
 long long ztm_get_time(enum ztm_unit unit, enum ztm_clock clock)
 {
-    long long result = _convert_from_nanosec(_get_time(clock), unit);
+    long long result = -1;
+    struct timespec now = _get_time(clock);
 
-    if (clock == ztmMono)
-        result += g_time_calibration[unit];
+    if (now.tv_sec != -1)
+    {
+        result = _convert_from_nanosec(_get_time_nano(now), unit);
+
+        if (clock == ztmMono)
+            result += g_time_calibration[unit];
+    }
+
+    return result;
+}
+
+struct tm* ztm_get_time_brokendown(enum ztm_clock clock)
+{
+    struct tm* result = NULL;
+    struct timespec now = _get_time(clock);
+
+    if (now.tv_sec != -1)
+        result = localtime(&now.tv_sec);
+
+    return result;
+}
+
+struct tm* ztm_make_time_brokendown(long long time, enum ztm_unit unit)
+{
+    struct tm* result;
+    long long secs = _convert_from_nanosec(_convert_to_nanosec(time, unit), ztmSec);
+    time_t now = (time_t)secs;
+    result = localtime(&now);
 
     return result;
 }
@@ -112,16 +157,18 @@ char* ztm_time_to_buff(long long time, enum ztm_unit unit, char* buff, size_t bu
     struct tm *brokendown_time = localtime(&rawtime);
 
     strftime(buff, buffSize, format, brokendown_time);
+
     return buff;
 }
 
 long long ztm_str_to_time(const char *timeStr, const char *format, enum ztm_unit toUnit)
 {
-    struct tm brokendown_time;
+    struct tm bd_time;
     time_t time_sec = 0;
+    bd_time.tm_isdst = daylight;
 
-    if (strptime(timeStr, format, &brokendown_time) != NULL)
-        time_sec = mktime(&brokendown_time);
+    if (strptime(timeStr, format, &bd_time) != NULL)
+        time_sec = mktime(&bd_time);
     else
         errno = EINVAL;
 
